@@ -35,7 +35,7 @@ java -version
 Clone and inspect the repository:
 
 ```bash
-git clone <this repo>
+git clone https://github.com/abuzada555/Safi_Task.git
 cd safi_task
 ls
 ```
@@ -89,7 +89,7 @@ In **terminal 1**:
 
 ```bash
 cd backend
-./mvnw spring-boot:run
+./mvn spring-boot:run
 # or: mvn spring-boot:run
 ```
 
@@ -130,7 +130,7 @@ The Angular dev server proxies API calls to the backend automatically.
 
 ```bash
 cd backend
-./mvnw test
+./mvn test
 ```
 
 This validates:
