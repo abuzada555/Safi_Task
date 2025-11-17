@@ -171,6 +171,19 @@ Key backend packages:
 
 The Angular frontend lives in `frontend/src/app`. The `App` component owns the UI state via Angular Signals and Reactive Forms, while `ApiService` centralizes all HTTP calls back to the backend.
 
+### PDF branding assets
+
+Invoice PDFs rendered from the Angular dashboard are branded with Ninova Technology header and footer images hosted on `placehold.co`. The assets are referenced directly from `frontend/src/app/app.ts` using the following constants, without any base64 decoding or API lookups:
+
+```ts
+const headerUrl =
+  "https://placehold.co/800x120/1e3a8a/ffffff?text=Ninova+Technology";
+const footerUrl =
+  "https://placehold.co/800x80/111827/f9fafb?text=Ninova+Technology+%7C+Borooq+Tower,+Bldg.+190,+St.+836,+Doha";
+```
+
+Updating these constants is all that’s required to swap out the PDF branding for another environment.
+
 ## Backend flow
 
 ### Expense claim lifecycle
