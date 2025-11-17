@@ -4,8 +4,11 @@ import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } fr
 import pdfMake from '../pdfmake/build/pdfmake';
 import pdfFonts from '../pdfmake/build/vfs_fonts';
 
-const headerUrl = 'https://via.placeholder.com/600x100.png?text=Letterhead';
-const footerUrl = 'https://via.placeholder.com/600x80.png?text=Footer';
+const headerUrl = 'https://placehold.co/800x120/1e3a8a/ffffff?text=Ninova+Technology';
+
+const footerUrl =
+  'https://placehold.co/800x80/111827/f9fafb?text=Ninova+Technology+%7C+Borooq+Tower,+Bldg.+190,+St.+836,+Doha';
+
 import {
   ApiService,
   ClaimItem,
@@ -16,7 +19,7 @@ import {
   InvoicePdfData,
   PageResponse,
   StatusHistoryEntry,
-  StockSummary
+  StockSummary,
 } from './services/api.service';
 
 (pdfMake as any).vfs = pdfFonts.pdfMake.vfs;
@@ -26,7 +29,7 @@ import {
   standalone: true,
   imports: [CommonModule, NgIf, NgFor, ReactiveFormsModule, DatePipe],
   templateUrl: './app.html',
-  styleUrl: './app.scss'
+  styleUrl: './app.scss',
 })
 export class App implements OnInit {
   private readonly fb = inject(FormBuilder);
@@ -35,12 +38,12 @@ export class App implements OnInit {
   readonly claimForm = this.fb.group({
     claimantName: ['', Validators.required],
     description: [''],
-    items: this.fb.array([this.createItemGroup()])
+    items: this.fb.array([this.createItemGroup()]),
   });
 
   readonly transitionForm = this.fb.group({
     targetStatus: ['', Validators.required],
-    comment: ['', Validators.required]
+    comment: ['', Validators.required],
   });
 
   readonly claimsPage: WritableSignal<PageResponse<ExpenseClaim> | null> = signal(null);
@@ -80,7 +83,9 @@ export class App implements OnInit {
     if (!page) {
       return 0;
     }
-    return page.content.filter(claim => claim.status !== 'APPROVED' && claim.status !== 'INVOICED').length;
+    return page.content.filter(
+      (claim) => claim.status !== 'APPROVED' && claim.status !== 'INVOICED'
+    ).length;
   }
 
   claimValueTotal(): number {
@@ -98,7 +103,9 @@ export class App implements OnInit {
       return metrics.invoicesAwaitingApproval;
     }
     const invoices = this.invoicesPage();
-    return invoices ? invoices.content.filter(invoice => invoice.status !== 'APPROVED').length : 0;
+    return invoices
+      ? invoices.content.filter((invoice) => invoice.status !== 'APPROVED').length
+      : 0;
   }
 
   invoiceApprovalRate(): number {
@@ -110,7 +117,7 @@ export class App implements OnInit {
     if (!invoices || invoices.content.length === 0) {
       return 0;
     }
-    const approved = invoices.content.filter(invoice => invoice.status === 'APPROVED').length;
+    const approved = invoices.content.filter((invoice) => invoice.status === 'APPROVED').length;
     return Math.round((approved / invoices.content.length) * 100);
   }
 
@@ -154,7 +161,7 @@ export class App implements OnInit {
     return this.fb.group({
       itemName: ['', Validators.required],
       quantity: [1, [Validators.required, Validators.min(1)]],
-      unitPrice: [0, [Validators.required, Validators.min(0)]]
+      unitPrice: [0, [Validators.required, Validators.min(0)]],
     });
   }
 
@@ -167,7 +174,7 @@ export class App implements OnInit {
     const payload = {
       claimantName: this.claimForm.value.claimantName ?? '',
       description: this.claimForm.value.description ?? '',
-      items: this.mapFormItems()
+      items: this.mapFormItems(),
     };
     this.api.createClaim(payload).subscribe({
       next: () => {
@@ -178,38 +185,38 @@ export class App implements OnInit {
         this.loadClaims();
         this.loadMetrics();
       },
-      error: () => this.isSubmitting.set(false)
+      error: () => this.isSubmitting.set(false),
     });
   }
 
   private mapFormItems(): ClaimItem[] {
-    return this.itemsArray.controls.map(control => ({
+    return this.itemsArray.controls.map((control) => ({
       itemName: control.value.itemName ?? '',
       quantity: Number(control.value.quantity ?? 0),
-      unitPrice: Number(control.value.unitPrice ?? 0)
+      unitPrice: Number(control.value.unitPrice ?? 0),
     }));
   }
 
   loadClaims(page = this.claimPageIndex()): void {
-    this.api.listClaims(page, this.pageSize).subscribe(pageData => {
+    this.api.listClaims(page, this.pageSize).subscribe((pageData) => {
       this.claimsPage.set(pageData);
       this.claimPageIndex.set(pageData.page);
     });
   }
 
   loadInvoices(page = this.invoicePageIndex()): void {
-    this.api.listInvoices(page, this.pageSize).subscribe(pageData => {
+    this.api.listInvoices(page, this.pageSize).subscribe((pageData) => {
       this.invoicesPage.set(pageData);
       this.invoicePageIndex.set(pageData.page);
     });
   }
 
   loadStock(): void {
-    this.api.getStock().subscribe(entries => this.stockEntries.set(entries));
+    this.api.getStock().subscribe((entries) => this.stockEntries.set(entries));
   }
 
   loadMetrics(): void {
-    this.api.getDashboardMetrics().subscribe(data => this.dashboardMetrics.set(data));
+    this.api.getDashboardMetrics().subscribe((data) => this.dashboardMetrics.set(data));
   }
 
   selectClaim(claim: ExpenseClaim): void {
@@ -217,7 +224,7 @@ export class App implements OnInit {
     const options = this.transitionsFor(claim);
     const next = options[0] ?? claim.status;
     this.transitionForm.patchValue({ targetStatus: next, comment: '' });
-    this.api.getHistory(claim.id).subscribe(history => this.claimHistory.set(history));
+    this.api.getHistory(claim.id).subscribe((history) => this.claimHistory.set(history));
   }
 
   performTransition(): void {
@@ -227,9 +234,12 @@ export class App implements OnInit {
       return;
     }
     this.transitionSubmitting.set(true);
-    const { targetStatus, comment } = this.transitionForm.value as { targetStatus: ClaimStatus; comment: string };
+    const { targetStatus, comment } = this.transitionForm.value as {
+      targetStatus: ClaimStatus;
+      comment: string;
+    };
     this.api.transitionClaim(claim.id, { targetStatus, comment }).subscribe({
-      next: updated => {
+      next: (updated) => {
         this.transitionSubmitting.set(false);
         this.selectedClaim.set(updated);
         const next = this.transitionsFor(updated)[0] ?? updated.status;
@@ -238,14 +248,14 @@ export class App implements OnInit {
         this.loadInvoices(this.invoicePageIndex());
         this.loadStock();
         this.loadMetrics();
-        this.api.getHistory(updated.id).subscribe(history => this.claimHistory.set(history));
+        this.api.getHistory(updated.id).subscribe((history) => this.claimHistory.set(history));
       },
-      error: () => this.transitionSubmitting.set(false)
+      error: () => this.transitionSubmitting.set(false),
     });
   }
 
   approveInvoice(invoice: InvoiceModel): void {
-    this.api.approveInvoice(invoice.id).subscribe(updated => {
+    this.api.approveInvoice(invoice.id).subscribe((updated) => {
       this.loadInvoices(this.invoicePageIndex());
       this.loadStock();
       this.loadMetrics();
@@ -256,47 +266,53 @@ export class App implements OnInit {
   }
 
   downloadPdf(invoice: InvoiceModel): void {
-    this.api.getInvoicePdfData(invoice.id).subscribe(data => this.buildPdf(data));
+    this.api
+      .getInvoicePdfData(invoice.id)
+      .subscribe((data) =>
+        this.buildPdf(data).catch((error) => console.error('Failed to build PDF', error))
+      );
   }
 
-  private buildPdf(data: InvoicePdfData): void {
-    const headerImage = headerUrl || (data.headerImage ? `data:image/png;base64,${data.headerImage}` : undefined);
-    const footerImage = footerUrl || (data.footerImage ? `data:image/png;base64,${data.footerImage}` : undefined);
+  private async buildPdf(data: InvoicePdfData): Promise<void> {
+    const [headerImage, footerImage] = await this.resolvePdfAssets();
     const tableBody = [
       ['Item', 'Qty', 'Price', 'Line Total'],
-      ...data.items.map(item => [
+      ...data.items.map((item) => [
         item.itemName,
         item.quantity,
         this.currency(item.unitPrice),
-        this.currency(item.lineTotal)
-      ])
+        this.currency(item.lineTotal),
+      ]),
     ];
     const totals = [
       { label: 'Subtotal', value: this.currency(data.subtotal) },
       { label: 'Tax', value: this.currency(data.tax) },
-      { label: 'Total', value: this.currency(data.total) }
+      { label: 'Total', value: this.currency(data.total) },
     ];
     const content: any[] = [
       { text: `Invoice ${data.invoiceNumber}`, style: 'title' },
       {
         columns: [
           { text: `Date: ${data.invoiceDate}`, width: '50%' },
-          { text: `Claim Reference: ${data.claimReference}`, alignment: 'right', width: '50%' }
+          { text: `Claim Reference: ${data.claimReference}`, alignment: 'right', width: '50%' },
         ],
-        margin: [0, 10, 0, 10]
+        margin: [0, 10, 0, 10],
       },
       { text: `Payee: ${data.claimantName}`, margin: [0, 0, 0, 10] },
       {
         table: {
           headerRows: 1,
           widths: ['*', 60, 80, 100],
-          body: tableBody
-        }
+          body: tableBody,
+        },
       },
       {
-        columns: totals.map(item => ({ text: `${item.label}: ${item.value}`, alignment: 'right' })),
-        margin: [0, 15, 0, 0]
-      }
+        columns: totals.map((item) => ({
+          text: `${item.label}: ${item.value}`,
+          alignment: 'right',
+        })),
+        margin: [0, 15, 0, 0],
+      },
     ];
     if (data.managerApproved) {
       content.push({ text: 'Approved by Manager', style: 'approved', margin: [0, 20, 0, 0] });
@@ -307,29 +323,63 @@ export class App implements OnInit {
         image: headerImage,
         alignment: 'center',
         margin: [0, 40, 0, 0],
-        fit: [400, 80]
+        fit: [400, 80],
       },
       footer: {
         columns: [
           {
             image: footerImage,
             alignment: 'center',
-            fit: [400, 60]
-          }
+            fit: [400, 60],
+          },
         ],
-        margin: [0, 0, 0, 40]
+        margin: [0, 0, 0, 40],
       },
       content,
       styles: {
         title: { fontSize: 20, bold: true },
-        approved: { color: '#2e7d32', bold: true }
-      }
+        approved: { color: '#2e7d32', bold: true },
+      },
     };
     pdfMake.createPdf(docDefinition).download(`invoice-${data.invoiceNumber}.pdf`);
   }
 
   private currency(value: number): string {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value ?? 0);
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(
+      value ?? 0
+    );
+  }
+
+  private headerImageData?: string;
+  private footerImageData?: string;
+
+  private async resolvePdfAssets(): Promise<[string, string]> {
+    if (!this.headerImageData) {
+      this.headerImageData = await this.loadImageAsset(headerUrl);
+    }
+    if (!this.footerImageData) {
+      this.footerImageData = await this.loadImageAsset(footerUrl);
+    }
+    return [this.headerImageData, this.footerImageData];
+  }
+
+  private loadImageAsset(url: string): Promise<string> {
+    return fetch(url)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Unable to fetch image: ${url}`);
+        }
+        return response.blob();
+      })
+      .then(
+        (blob) =>
+          new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          })
+      );
   }
 
   goToPreviousClaims(): void {
@@ -355,6 +405,6 @@ export class App implements OnInit {
   }
 
   transitionsFor(claim: ExpenseClaim): ClaimStatus[] {
-    return claim.allowedTransitions.filter(status => status !== claim.status);
+    return claim.allowedTransitions.filter((status) => status !== claim.status);
   }
 }
